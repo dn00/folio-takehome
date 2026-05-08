@@ -27,6 +27,19 @@ if (!$doc) {
     exit;
 }
 
+if ($doc['publish_at'] !== null && $doc['publish_at'] > gmdate('Y-m-d H:i:s')) {
+    http_response_code(403);
+    render_header('Not yet available');
+    ?>
+    <div class="centered-message">
+        <h1>Not yet available</h1>
+        <p>This document is scheduled to be published later. Please check back after <?= h($doc['publish_at']) ?> UTC.</p>
+    </div>
+    <?php
+    render_footer();
+    exit;
+}
+
 render_header($doc['title']);
 ?>
 

@@ -46,3 +46,22 @@ function random_token(int $bytes = 16): string {
 function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 }
+
+function parse_publish_at(string $raw)
+{
+    if ($raw === '') {
+        return null;
+    }
+    $dt = DateTime::createFromFormat('Y-m-d\TH:i', $raw, new DateTimeZone('UTC'));
+    if (!$dt) {
+        return false;
+    }
+    $errors = DateTime::getLastErrors();
+    if ($errors && ($errors['warning_count'] > 0 || $errors['error_count'] > 0)) {
+        return false;
+    }
+    if ($dt->format('Y-m-d\TH:i') !== $raw) {
+        return false;
+    }
+    return $dt->format('Y-m-d H:i:s');
+}
