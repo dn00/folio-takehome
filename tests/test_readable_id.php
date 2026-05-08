@@ -85,5 +85,32 @@ test('seeded doc has readable_id set', function () {
     assert_true((bool) preg_match('/^welcome-packet-[a-z0-9]{4}$/', $doc['readable_id']), 'unexpected format: ' . $doc['readable_id']);
 });
 
+// --- Upgrade path: backfill migration for legacy NULL rows ---
+
+test('backfill UPDATE populates readable_id for legacy NULL rows', function () {
+    db()->exec("UPDATE documents SET readable_id = NULL WHERE title = 'Welcome Packet'");
+    $rid = db()->query("SELECT readable_id FROM documents WHERE title = 'Welcome Packet'")->fetchColumn();
+    assert_true($rid === null, 'precondition: readable_id is NULL (simulating pre-migration state)');
+
+    db()->exec("UPDATE documents SET readable_id = 'doc-' || id WHERE readable_id IS NULL");
+
+    $rid = db()->query("SELECT readable_id FROM documents WHERE title = 'Welcome Packet'")->fetchColumn();
+    assert_true($rid !== null && $rid !== '', 'backfill should populate readable_id');
+    assert_true((bool) preg_match('/^doc-\d+$/', $rid), "expected 'doc-N' format, got: {$rid}");
+
+    $stmt = db()->prepare('SELECT id FROM documents WHERE readable_id = ?');
+    $stmt->execute([$rid]);
+    assert_true($stmt->fetch() !== false, 'backfilled doc must be resolvable by readable_id (i.e. shareable)');
+});
+
+test('backfill UPDATE skips rows that already have a readable_id', function () {
+    db()->exec("UPDATE documents SET readable_id = 'manual-override-1234' WHERE title = 'Welcome Packet'");
+
+    db()->exec("UPDATE documents SET readable_id = 'doc-' || id WHERE readable_id IS NULL");
+
+    $rid = db()->query("SELECT readable_id FROM documents WHERE title = 'Welcome Packet'")->fetchColumn();
+    assert_equals('manual-override-1234', $rid, 'backfill must not overwrite an already-populated readable_id');
+});
+
 echo "\n{$pass} passed, {$fail} failed.\n";
 exit($fail > 0 ? 1 : 0);
