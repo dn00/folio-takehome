@@ -45,4 +45,14 @@ test('seeded share link resolves to the seeded document', function () {
 });
 
 echo "\n{$pass} passed, {$fail} failed.\n";
-exit($fail > 0 ? 1 : 0);
+
+$suites = glob(__DIR__ . '/test_*.php');
+$suite_fail = false;
+foreach ($suites as $suite) {
+    system('php ' . escapeshellarg($suite), $rc);
+    if ($rc !== 0) {
+        $suite_fail = true;
+    }
+}
+
+exit(($fail > 0 || $suite_fail) ? 1 : 0);
