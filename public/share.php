@@ -4,9 +4,9 @@ require __DIR__ . '/../lib/bootstrap.php';
 require __DIR__ . '/../lib/layout.php';
 
 $staff = current_staff();
-$docId = (int) ($_GET['doc'] ?? 0);
-$stmt = db()->prepare('SELECT * FROM documents WHERE id = ?');
-$stmt->execute([$docId]);
+$docParam = trim($_GET['doc'] ?? '');
+$stmt = db()->prepare('SELECT * FROM documents WHERE readable_id = ?');
+$stmt->execute([$docParam]);
 $doc = $stmt->fetch();
 
 if (!$doc) {
@@ -58,7 +58,7 @@ render_header('Share · ' . $doc['title'], $staff);
 <?php if ($created_token): ?>
     <div class="banner banner-success">
         Share link ready:
-        <code>http://<?= h($_SERVER['HTTP_HOST']) ?>/view.php?token=<?= h($created_token) ?></code>
+        <code>http://<?= h($_SERVER['HTTP_HOST']) ?>/view.php?doc=<?= h($doc['readable_id']) ?>&amp;token=<?= h($created_token) ?></code>
     </div>
 <?php endif ?>
 

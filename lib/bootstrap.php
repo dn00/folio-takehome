@@ -47,6 +47,27 @@ function h(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
 }
 
+function generate_readable_id(string $title): string
+{
+    $slug = strtolower($title);
+    $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+    $slug = trim($slug, '-');
+    if (strlen($slug) > 40) {
+        $slug = substr($slug, 0, 40);
+        $slug = rtrim($slug, '-');
+    }
+    if ($slug === '') {
+        $slug = 'doc';
+    }
+    $charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    $suffix = '';
+    $bytes = random_bytes(4);
+    for ($i = 0; $i < 4; $i++) {
+        $suffix .= $charset[ord($bytes[$i]) % 36];
+    }
+    return $slug . '-' . $suffix;
+}
+
 function parse_publish_at(string $raw)
 {
     if ($raw === '') {

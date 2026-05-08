@@ -22,16 +22,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$error) {
-        $stmt = db()->prepare('
-            INSERT INTO documents (title, body, created_by, publish_at)
-            VALUES (?, ?, ?, ?)
-        ');
-        $stmt->execute([$title, $body, $staff['id'], $publish_at]);
+        $readable_id = generate_readable_id($title);
+        $attempts = 0;
+        while (true) {
+            try {
+                $stmt = db()->prepare('
+                    INSERT INTO documents (title, body, created_by, publish_at, readable_id)
+                    VALUES (?, ?, ?, ?, ?)
+                ');
+                $stmt->execute([$title, $body, $staff['id'], $publish_at, $readable_id]);
+                break;
+            } catch (PDOException $e) {
+                if ($e->getCode() === '23000' && ++$attempts < 3) {
+                    $readable_id = generate_readable_id($title);
+                    continue;
+                }
+                throw $e;
+            }
+        }
         $docId = (int) db()->lastInsertId();
 
-        audit_log('create', 'document', $docId, ['title' => $title, 'publish_at' => $publish_at]);
+        audit_log('create', 'document', $docId, ['title' => $title, 'publish_at' => $publish_at, 'readable_id' => $readable_id]);
 
-        header('Location: /admin.php?created=' . $docId);
+        header('Location: /admin.php?created=' . urlencode($readable_id));
         exit;
     }
 }
@@ -50,7 +63,7 @@ render_header('Admin', $staff);
 <p class="page-subtitle">Create documents and generate share links for recipients.</p>
 
 <?php if (!empty($_GET['created'])): ?>
-    <div class="banner banner-success">Document #<?= (int) $_GET['created'] ?> created.</div>
+    <div class="banner banner-success">Document <?= h($_GET['created']) ?> created.</div>
 <?php endif ?>
 
 <?php if ($error): ?>
@@ -95,7 +108,7 @@ render_header('Admin', $staff);
             <tbody>
                 <?php foreach ($docs as $d): ?>
                     <tr>
-                        <td class="id">#<?= (int) $d['id'] ?></td>
+                        <td class="id"><?= h($d['readable_id'] ?? '#' . $d['id']) ?></td>
                         <td><?= h($d['title']) ?></td>
                         <td><?= h($d['creator_name']) ?></td>
                         <td><?= h($d['created_at']) ?></td>
@@ -106,7 +119,7 @@ render_header('Admin', $staff);
                                 echo 'Scheduled: ' . h($d['publish_at']) . ' UTC';
                             }
                         ?></td>
-                        <td><a href="/share.php?doc=<?= (int) $d['id'] ?>" class="btn-link">Create share →</a></td>
+                        <td><a href="/share.php?doc=<?= h($d['readable_id'] ?? $d['id']) ?>" class="btn-link">Create share →</a></td>
                     </tr>
                 <?php endforeach ?>
             </tbody>
