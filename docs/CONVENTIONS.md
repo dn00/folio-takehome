@@ -39,6 +39,7 @@ Rules that must hold across all changes
 - **Tests clean up after themselves.** Temp files, test DB rows removed at end of each test.
 - **Tests assert DB state, not HTTP responses.** Current harness doesn't do HTTP-level testing.
 - **Mock only at system boundaries.** DB is the system under test — don't mock it. Mock external APIs, filesystem where appropriate. If the thing being tested IS the integration, test it directly.
+- **Extract for testability when inline logic forces test duplication.** If keeping logic inline forces the test to re-implement it, the duplicate can drift from production silently. Extracting to `lib/` so admin/view code and the test call the same function wins over "minimal abstraction" in this case. Single-caller helpers are acceptable when their reason for existing is testability, not reuse.
 
 ## URLs & Routing
 
