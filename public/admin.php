@@ -5,6 +5,9 @@ require __DIR__ . '/../lib/layout.php';
 
 $staff = current_staff();
 $error = null;
+$title = '';
+$body = '';
+$publish_at_raw = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
@@ -89,15 +92,15 @@ render_header('Admin', $staff);
     <form method="post">
         <div class="form-field">
             <label for="title">Title</label>
-            <input type="text" id="title" name="title" required>
+            <input type="text" id="title" name="title" value="<?= h($title) ?>" required>
         </div>
         <div class="form-field">
             <label for="body">Body</label>
-            <textarea id="body" name="body" required></textarea>
+            <textarea id="body" name="body" required><?= h($body) ?></textarea>
         </div>
         <div class="form-field">
             <label for="publish_at">Publish at (UTC, optional)</label>
-            <input type="datetime-local" id="publish_at" name="publish_at">
+            <input type="datetime-local" id="publish_at" name="publish_at" value="<?= h($publish_at_raw) ?>">
         </div>
         <button type="submit" class="btn">Create document</button>
     </form>
