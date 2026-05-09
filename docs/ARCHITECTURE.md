@@ -55,7 +55,7 @@ Folio is a PHP document-sharing internal tool. Staff create documents and genera
 | URL | File | Auth | Purpose |
 |-----|------|------|---------|
 | `/` | `public/index.php` | — | 302 redirect to `/admin.php` |
-| `/admin.php` | `public/admin.php` | Staff (hardcoded user #1) | Create documents (with optional publish_at), view list |
+| `/admin.php[?q=term]` | `public/admin.php` | Staff (hardcoded user #1) | Create documents (with optional publish_at), view list. Optional `q` filters by title (LIKE contains, case-insensitive). |
 | `/share.php?doc={readable_id}` | `public/share.php` | Staff | Generate share link for a document |
 | `/view.php?token={hex}[&doc={readable_id}]` | `public/view.php` | Public (token-gated) | Recipient views shared document. Optional `doc` param validated against token's document |
 
@@ -153,6 +153,13 @@ Recipient views document:
     → if doc param present and != document.readable_id: 404 (mismatched URL)
     → if publish_at > now (UTC): 403 "Not yet available"
     → else: render document
+
+Staff searches documents:
+  GET /admin.php?q={term}
+    → escape LIKE wildcards (% and _) in $term
+    → SELECT ... WHERE title LIKE ? ESCAPE '\' (double-quoted PHP string)
+    → render filtered list with result count or empty state
+    → no audit log (search is a read, not a mutation)
 ```
 
 ## Authentication Model
