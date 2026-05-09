@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $search = trim($_GET['q'] ?? '');
 if ($search !== '') {
     $stmt = db()->prepare("
-        SELECT d.*, s.name AS creator_name
+        SELECT d.id, d.title, d.created_at, d.publish_at, d.readable_id, s.name AS creator_name
         FROM documents d
         JOIN staff s ON s.id = d.created_by
         WHERE d.title LIKE ? ESCAPE '\\'
@@ -63,7 +63,7 @@ if ($search !== '') {
     $docs = $stmt->fetchAll();
 } else {
     $docs = db()->query('
-        SELECT d.*, s.name AS creator_name
+        SELECT d.id, d.title, d.created_at, d.publish_at, d.readable_id, s.name AS creator_name
         FROM documents d
         JOIN staff s ON s.id = d.created_by
         ORDER BY d.created_at DESC

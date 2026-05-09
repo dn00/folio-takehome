@@ -5,7 +5,7 @@ require __DIR__ . '/../lib/layout.php';
 
 $staff = current_staff();
 $docParam = trim($_GET['doc'] ?? '');
-$stmt = db()->prepare('SELECT * FROM documents WHERE readable_id = ?');
+$stmt = db()->prepare('SELECT id, title, readable_id, publish_at FROM documents WHERE readable_id = ?');
 $stmt->execute([$docParam]);
 $doc = $stmt->fetch();
 

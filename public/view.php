@@ -6,7 +6,7 @@ require __DIR__ . '/../lib/layout.php';
 $token = $_GET['token'] ?? '';
 
 $stmt = db()->prepare('
-    SELECT d.*, s.recipient_email
+    SELECT d.id, d.title, d.body, d.publish_at, d.readable_id, s.recipient_email
     FROM shares s
     JOIN documents d ON d.id = s.document_id
     WHERE s.token = ?
