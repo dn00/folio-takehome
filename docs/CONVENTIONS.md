@@ -11,6 +11,7 @@ Rules that must hold across all changes
 - **All queries use prepared statements.** No string interpolation into SQL. No exceptions.
 - **Foreign keys are enforced.** `PRAGMA foreign_keys = ON` is set at connection time. Respect referential integrity.
 - **Timestamps stored as UTC.** SQLite `datetime('now')` returns UTC. PHP display can convert, but storage is always UTC.
+- **Explicit columns on JOIN queries.** Avoid `SELECT *` when joining tables that share column names (e.g. `documents.created_at` + `shares.created_at`). Name the columns to prevent silent shadowing as schema evolves.
 
 ## PHP
 

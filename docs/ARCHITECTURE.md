@@ -199,5 +199,7 @@ Each suite re-seeds the DB at start and cleans up rows it inserts.
 - Token authoritative for view access; `doc` param in the share URL is informational and validated.
 - `publish_at` NULL means "immediately visible" (backwards compat for existing documents).
 - All queries use prepared statements (no SQL injection).
-- Output escaping via `h()` (no XSS). `h()` is currently not null-safe — fixed in cleanup pass for nullable fields.
+- Output escaping via `h(?string $s)` (no XSS). Null-safe via `?? ''` so nullable DB columns (`publish_at`, `readable_id`) don't crash render.
+- Document list / share / view queries use **explicit column lists** instead of `SELECT *` — prevents column shadowing on JOINs as schema evolves.
+- Admin form preserves submitted values across validation errors so staff doesn't lose input on a bad publish date.
 - No CSRF protection on forms (production hardening, not in scope for spec).
